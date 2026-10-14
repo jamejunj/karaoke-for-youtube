@@ -69,6 +69,28 @@
     <p id="vocalHint" class="hint"></p>
   </section>
 
+  <section class="card" id="queueCard">
+    <div class="card-head">
+      <h2><span data-i18n="queueTitle"></span> <span id="queueCount" class="count"></span></h2>
+      <button id="queueClear" class="link" type="button" data-i18n="queueClear"></button>
+    </div>
+    <div class="queue-actions">
+      <button id="queueAddCurrent" type="button" class="chip solid" data-i18n="queueAddCurrent"></button>
+      <button id="queueNext" type="button" class="chip" data-i18n="queueNext"></button>
+    </div>
+    <form id="queueForm" class="search">
+      <input id="queueInput" type="text" data-i18n-placeholder="queueAddLink" data-i18n-aria="queueAddLink">
+      <button type="submit" class="chip" data-i18n="queueAddBtn"></button>
+    </form>
+    <p id="queueMsg" class="hint queue-msg" role="status" aria-live="polite"></p>
+    <ol id="queueList" class="queue-list"></ol>
+    <p id="queueEmpty" class="hint" data-i18n="queueEmpty"></p>
+    <label class="check">
+      <input id="queueAutoplay" type="checkbox">
+      <span data-i18n="queueAutoplay"></span>
+    </label>
+  </section>
+
   <section class="card">
     <div class="card-head">
       <h2 id="lyricsTitle" data-i18n="lyricsTitle"></h2>
@@ -155,6 +177,10 @@
     <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>↑</kbd>/<kbd>↓</kbd> <span data-i18n="shortcutKey"></span> ·
     <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd> <span data-i18n="shortcutVocal"></span> ·
     <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>L</kbd> <span data-i18n="shortcutLyrics"></span>
+    <span class="foot-links">
+      <a id="openInfo" href="info.html" target="_blank" data-i18n="infoLink"></a>
+      <a class="coffee" href="https://buymeacoffee.com/jame.jpwn" target="_blank" rel="noopener">☕ <span data-i18n="infoCoffee"></span></a>
+    </span>
     <span id="version" class="version"></span>
   </footer>
 

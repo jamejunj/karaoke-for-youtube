@@ -10,7 +10,7 @@
     if (document.documentElement.getAttribute(OWNER_ATTR) !== instanceId) dead = true;
   });
 
-  const DEFAULTS = { semitones: 0, vocalRemoval: false, vocalStrength: 100, speed: 1, showLyrics: false, lyricsOverlay: true, lyricsStyle: 'panel', lyricsWipe: true, lyricsBg: true, lyricsHl: '#ffd23f', lyricsFg: '#ffffff', lyricsPreferCC: true };
+  const DEFAULTS = { semitones: 0, vocalRemoval: false, vocalStrength: 100, speed: 1, showLyrics: false, lyricsOverlay: true, lyricsStyle: 'panel', lyricsWipe: true, lyricsBg: true, lyricsHl: '#ffd23f', lyricsFg: '#ffffff', lyricsPreferCC: true, queueAutoplay: true };
 
   let settings = { ...DEFAULTS };
   let lang = KaraokeI18n.resolve();
@@ -226,10 +226,61 @@
     true
   );
 
+  // ---------- karaoke queue ----------
+  // When the song on a watch page ends, open the next queued video in this tab.
+  let queue = [];
+  let upNextShownFor = null;
+  const currentVideoId = () => new URL(location.href).searchParams.get('v');
+  const isMainVideo = (v) => location.pathname === '/watch' && !!v.closest('#movie_player');
+  const inAd = () => !!document.querySelector('#movie_player.ad-showing');
+
+  chrome.storage.local.get(['queue', 'queueNow'], ({ queue: q, queueNow }) => {
+    queue = q || [];
+    // Just arrived here from the queue → say what's playing
+    if (queueNow && queueNow.videoId === currentVideoId() && Date.now() - queueNow.at < 60000) {
+      setTimeout(() => !dead && toast(t('queueNowPlaying', { title: queueNow.title })), 1500);
+      chrome.storage.local.remove('queueNow');
+    }
+  });
+  chrome.storage.onChanged.addListener((changes, area) => {
+    if (!dead && area === 'local' && changes.queue) queue = changes.queue.newValue || [];
+  });
+
+  document.addEventListener(
+    'timeupdate',
+    (e) => {
+      const v = e.target;
+      if (dead || !(v instanceof HTMLVideoElement) || !queue.length || settings.queueAutoplay === false) return;
+      if (!isMainVideo(v) || inAd() || !v.duration || v.duration - v.currentTime > 10) return;
+      const vid = currentVideoId();
+      if (upNextShownFor === vid) return;
+      upNextShownFor = vid;
+      toast(t('queueUpNext', { title: queue[0].title }));
+    },
+    true
+  );
+
+  document.addEventListener(
+    'ended',
+    (e) => {
+      const v = e.target;
+      if (dead || !(v instanceof HTMLVideoElement) || !isMainVideo(v) || inAd()) return;
+      if (settings.queueAutoplay === false || !queue.length) return;
+      chrome.runtime.sendMessage({ type: 'queue:take' }, (res) => {
+        if (chrome.runtime.lastError || !res || !res.item) return;
+        location.assign(`${location.origin}/watch?v=${encodeURIComponent(res.item.videoId)}`);
+      });
+    },
+    true
+  );
+
   chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     if (dead) return;
     if (msg && msg.type === 'karaoke:status') {
       sendResponse({ status, error: lastError, hasVideo: !!document.querySelector('video'), version: chrome.runtime.getManifest().version });
+    } else if (msg && msg.type === 'queue:toast') {
+      const r = msg.result || {};
+      toast(r.ok ? t('queueAddedToast', { n: r.size }) : r.error === 'exists' ? t('queueExists') : t('queueBadLink'));
     }
   });
 })();

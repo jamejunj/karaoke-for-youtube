@@ -1,6 +1,6 @@
 importScripts('lyrics-core.js');
 
-const DEFAULTS = { semitones: 0, vocalRemoval: false, vocalStrength: 100, speed: 1, showLyrics: false, lyricsOverlay: true, lyricsStyle: 'panel', lyricsWipe: true, lyricsBg: true, lyricsHl: '#ffd23f', lyricsFg: '#ffffff', lyricsPreferCC: true };
+const DEFAULTS = { semitones: 0, vocalRemoval: false, vocalStrength: 100, speed: 1, showLyrics: false, lyricsOverlay: true, lyricsStyle: 'panel', lyricsWipe: true, lyricsBg: true, lyricsHl: '#ffd23f', lyricsFg: '#ffffff', lyricsPreferCC: true, queueAutoplay: true };
 const MIN_KEY = -12;
 const MAX_KEY = 12;
 const MIN_SPEED = 0.5;
@@ -99,4 +99,123 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
     (err) => sendResponse({ ok: false, error: String((err && err.message) || err) })
   );
   return true;
+});
+// ---------- karaoke queue ----------
+// Stored as `queue`: [{ key, videoId, title, channel }]. All edits go through withQueue() so
+// concurrent requests (popup, context menu, a tab finishing a song) can't overwrite each other.
+const QUEUE_KEY = 'queue';
+let queueLock = Promise.resolve();
+
+function withQueue(fn) {
+  const run = queueLock.then(async () => {
+    const q = (await chrome.storage.local.get(QUEUE_KEY))[QUEUE_KEY] || [];
+    const result = await fn(q);
+    await chrome.storage.local.set({ [QUEUE_KEY]: q });
+    return result;
+  });
+  queueLock = run.catch(() => {});
+  return run;
+}
+
+// Title and channel from YouTube's oEmbed endpoint (falls back to the bare ID)
+async function videoInfo(videoId) {
+  try {
+    const url = `https://www.youtube.com/oembed?format=json&url=${encodeURIComponent(`https://www.youtube.com/watch?v=${videoId}`)}`;
+    const res = await fetch(url);
+    if (!res.ok) return {};
+    const j = await res.json();
+    return { title: j.title, channel: j.author_name };
+  } catch {
+    return {};
+  }
+}
+
+async function queueAdd(videoId, info) {
+  if (!videoId) return { ok: false, error: 'bad-link' };
+  const meta = info && info.title ? info : await videoInfo(videoId);
+  return withQueue((q) => {
+    if (q.some((x) => x.videoId === videoId)) return { ok: false, error: 'exists', size: q.length };
+    q.push({ key: crypto.randomUUID(), videoId, title: meta.title || videoId, channel: meta.channel || '' });
+    return { ok: true, size: q.length, title: meta.title || videoId };
+  });
+}
+
+// Remove an item (the first one by default) and remember it as "now playing" for the tab's toast
+function queueTake(key) {
+  return withQueue(async (q) => {
+    const i = key ? q.findIndex((x) => x.key === key) : 0;
+    if (i < 0 || !q[i]) return { item: null };
+    const [item] = q.splice(i, 1);
+    await chrome.storage.local.set({ queueNow: { videoId: item.videoId, title: item.title, at: Date.now() } });
+    return { item };
+  });
+}
+
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+  if (!msg || typeof msg.type !== 'string' || !msg.type.startsWith('queue:') || msg.type === 'queue:toast') return;
+  let job;
+  switch (msg.type) {
+    case 'queue:add':
+      job = queueAdd(msg.videoId || KaraokeLyrics.parseVideoId(msg.input), msg.title ? { title: msg.title, channel: msg.channel } : null);
+      break;
+    case 'queue:take':
+      job = queueTake(msg.key);
+      break;
+    case 'queue:remove':
+      job = withQueue((q) => {
+        const i = q.findIndex((x) => x.key === msg.key);
+        if (i >= 0) q.splice(i, 1);
+        return { ok: i >= 0 };
+      });
+      break;
+    case 'queue:move':
+      job = withQueue((q) => {
+        const i = q.findIndex((x) => x.key === msg.key);
+        const j = i + (msg.delta < 0 ? -1 : 1);
+        if (i < 0 || j < 0 || j >= q.length) return { ok: false };
+        [q[i], q[j]] = [q[j], q[i]];
+        return { ok: true };
+      });
+      break;
+    case 'queue:clear':
+      job = withQueue((q) => {
+        q.length = 0;
+        return { ok: true };
+      });
+      break;
+    default:
+      return;
+  }
+  job.then(sendResponse, (err) => sendResponse({ ok: false, error: String((err && err.message) || err) }));
+  return true;
+});
+
+// Right-click a YouTube video link/thumbnail (or the watch page itself) → add to the queue
+function setupMenus() {
+  chrome.contextMenus.removeAll(() => {
+    chrome.contextMenus.create({
+      id: 'queue-add-link',
+      title: chrome.i18n.getMessage('ctxQueueAdd'),
+      contexts: ['link'],
+      targetUrlPatterns: ['*://*.youtube.com/watch*', '*://youtu.be/*', '*://*.youtube.com/shorts/*'],
+    });
+    chrome.contextMenus.create({
+      id: 'queue-add-page',
+      title: chrome.i18n.getMessage('ctxQueueAddPage'),
+      contexts: ['page', 'video'],
+      documentUrlPatterns: ['*://*.youtube.com/watch*'],
+    });
+  });
+}
+chrome.runtime.onInstalled.addListener(setupMenus);
+chrome.runtime.onStartup.addListener(setupMenus);
+
+chrome.contextMenus.onClicked.addListener(async (info, tab) => {
+  const url = info.menuItemId === 'queue-add-link' ? info.linkUrl : info.pageUrl || (tab && tab.url);
+  const res = await queueAdd(KaraokeLyrics.parseVideoId(url));
+  if (tab && tab.id >= 0) chrome.tabs.sendMessage(tab.id, { type: 'queue:toast', result: res }, () => void chrome.runtime.lastError);
+});
+// Welcome: show the guide once, right after a fresh install
+chrome.runtime.onInstalled.addListener((details) => {
+  if (details.reason === 'install') chrome.runtime.openOptionsPage();
 });

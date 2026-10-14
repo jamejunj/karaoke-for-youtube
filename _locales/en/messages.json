@@ -6,5 +6,7 @@
   "cmdToggleVocal": { "message": "Toggle vocal removal" },
   "cmdSpeedUp": { "message": "Speed up (+0.05×)" },
   "cmdSpeedDown": { "message": "Slow down (−0.05×)" },
-  "cmdToggleLyrics": { "message": "Show/hide lyrics" }
+  "cmdToggleLyrics": { "message": "Show/hide lyrics" },
+  "ctxQueueAdd": { "message": "Add to karaoke queue" },
+  "ctxQueueAddPage": { "message": "Add this video to karaoke queue" }
 }

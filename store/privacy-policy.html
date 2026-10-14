@@ -24,7 +24,9 @@
   <ul>
     <li>Your settings: key, vocal removal, speed, lyrics display options, colours and interface language.</li>
     <li>Lyrics choices for each video: which lyrics you picked, timing adjustments, lyrics you synced or pasted yourself, and the position of the lyrics panel. These are stored under the YouTube video ID.</li>
+    <li>Your song queue: the video ID, title and channel name of each queued video.</li>
   </ul>
+  <p>When you add a video to the queue by its link, the extension asks YouTube's public oEmbed service (youtube.com) for the video's title and channel name.</p>
   <p>Uninstalling the extension removes all of this data.</p>
 
   <h2>Data sent to third parties</h2>
@@ -37,6 +39,7 @@
     <li><strong>storage</strong>: saves the settings described above.</li>
     <li><strong>scripting</strong> and access to <strong>youtube.com</strong>: process audio and show lyrics on YouTube pages, and reconnect to YouTube tabs that were already open when the extension was updated.</li>
     <li>Access to <strong>lrclib.net</strong>: looks up lyrics.</li>
+    <li><strong>contextMenus</strong>: adds "Add to karaoke queue" to the right-click menu on YouTube videos.</li>
   </ul>
 
   <h2>Contact</h2>
@@ -56,7 +59,9 @@
     <ul>
       <li>การตั้งค่า ได้แก่ คีย์ การตัดเสียงร้อง ความเร็ว ตัวเลือกการแสดงเนื้อร้อง สี และภาษาของหน้าจอ</li>
       <li>เนื้อร้องที่เลือกไว้ของแต่ละวิดีโอ ได้แก่ เนื้อร้องที่เลือก ค่าเลื่อนเวลา เนื้อร้องที่ซิงก์หรือวางเอง และตำแหน่งของแผงเนื้อร้อง ข้อมูลนี้เก็บโดยอ้างอิงรหัสวิดีโอ YouTube</li>
+      <li>คิวเพลง ได้แก่ รหัสวิดีโอ ชื่อวิดีโอ และชื่อช่องของแต่ละเพลงในคิว</li>
     </ul>
+    <p>เมื่อเพิ่มวิดีโอเข้าคิวจากลิงก์ ส่วนขยายจะขอชื่อวิดีโอและชื่อช่องจากบริการ oEmbed สาธารณะของ YouTube (youtube.com)</p>
     <p>เมื่อถอนการติดตั้งส่วนขยาย ข้อมูลทั้งหมดนี้จะถูกลบ</p>
 
     <h2>ข้อมูลที่ส่งให้บุคคลที่สาม</h2>
@@ -69,6 +74,7 @@
       <li><strong>storage</strong>: บันทึกการตั้งค่าตามที่ระบุข้างต้น</li>
       <li><strong>scripting</strong> และสิทธิ์เข้าถึง <strong>youtube.com</strong>: ประมวลผลเสียงและแสดงเนื้อร้องบนหน้า YouTube และเชื่อมต่อแท็บ YouTube ที่เปิดค้างไว้ตอนอัปเดตส่วนขยายใหม่</li>
       <li>สิทธิ์เข้าถึง <strong>lrclib.net</strong>: ค้นหาเนื้อร้อง</li>
+      <li><strong>contextMenus</strong>: เพิ่มคำสั่ง "เพิ่มเข้าคิวคาราโอเกะ" ในเมนูคลิกขวาบนวิดีโอ YouTube</li>
     </ul>
 
     <h2>ติดต่อ</h2>

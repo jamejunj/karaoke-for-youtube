@@ -209,3 +209,25 @@ textarea { display: block; width: 100%; margin: 8px 0 6px; resize: vertical; }
 .look-preview.nowipe .pv-hi { clip-path: none; }
 
 .version { display: block; margin-top: 4px; opacity: .7; }
+
+/* ---------- queue ---------- */
+.count { font-size: 12px; font-weight: 600; color: var(--muted); }
+.queue-actions { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+.queue-msg { margin: 2px 0 4px; min-height: 0; }
+.queue-msg:empty { display: none; }
+.queue-list { list-style: none; margin: 4px 0 8px; padding: 0; max-height: 220px; overflow-y: auto; counter-reset: q; }
+.queue-list li { display: flex; align-items: center; gap: 6px; padding: 5px 4px 5px 6px; border-radius: 8px; counter-increment: q; }
+.queue-list li:hover { background: var(--bg); }
+.queue-list li::before { content: counter(q); flex: none; width: 16px; font-size: 11px; color: var(--muted); text-align: right; font-variant-numeric: tabular-nums; }
+.queue-list .qt { flex: 1; min-width: 0; }
+.queue-list .qt b { display: block; font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.queue-list .qt small { display: block; font-size: 11px; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.queue-list .qb { flex: none; width: 24px; height: 24px; border: none; background: none; color: var(--muted); border-radius: 6px; font-size: 12px; line-height: 1; padding: 0; }
+.queue-list .qb:hover, .queue-list .qb:focus-visible { background: var(--card); color: var(--text); }
+.queue-list .qb.play { color: var(--accent); }
+.queue-list .qb:disabled { visibility: hidden; }
+
+.foot-links { display: flex; justify-content: center; gap: 8px; margin-top: 8px; flex-wrap: wrap; }
+.foot-links a { font-size: 12px; text-decoration: none; color: var(--text); padding: 4px 10px; border-radius: 999px; border: 1px solid var(--track); }
+.foot-links a:hover { border-color: var(--accent); }
+.foot-links a.coffee { background: #ffdd00; border-color: #ffdd00; color: #1a1a1a; font-weight: 600; }

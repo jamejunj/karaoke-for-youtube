@@ -1,4 +1,4 @@
-# Chrome Web Store submission — Karaoke for YouTube™ v1.3.0
+# Chrome Web Store submission — Karaoke for YouTube™ v1.5.0
 
 ## 1. Before you start
 - [ ] Register a developer account at https://chrome.google.com/webstore/devconsole (one-time US$5 fee, Google account with 2-Step Verification).
@@ -23,6 +23,7 @@ Paste from `store/listing.md` (English + add Thai). Category: **Entertainment**.
 | Permission | Justification to paste |
 |---|---|
 | `storage` | Saves the user's settings (key, vocal removal, speed, lyrics display options, colours, language) and per-video lyrics choices locally in the browser. |
+| `contextMenus` | Adds an "Add to karaoke queue" item to the right-click menu on YouTube video links, thumbnails and watch pages, so users can line up songs for the karaoke queue. |
 | `scripting` | When the extension is updated while a YouTube tab is already open, the popup re-injects the extension's own bundled content scripts into that YouTube tab so it keeps working without a page refresh. No remote code is injected. |
 | Host `https://www.youtube.com/*`, `https://m.youtube.com/*`, `https://music.youtube.com/*` | The extension's features run on YouTube pages: it routes the video's audio through a Web Audio processor (key change, vocal removal), sets playback speed, draws the lyrics overlay on the player, and loads the video's own captions (CC) from YouTube to use as lyrics. A small bundled script (`yt-bridge.js`, page main world) reads the player's caption track list, because that list isn't visible to isolated content scripts. |
 | Host `https://lrclib.net/*` | Looks up lyrics for the current song from the LRCLIB public lyrics API (only while the user has Lyrics switched on). |

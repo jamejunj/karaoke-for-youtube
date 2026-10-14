@@ -1,4 +1,4 @@
-const DEFAULTS = { semitones: 0, vocalRemoval: false, vocalStrength: 100, speed: 1, showLyrics: false, lyricsOverlay: true, lyricsStyle: 'panel', lyricsWipe: true, lyricsBg: true, lyricsHl: '#ffd23f', lyricsFg: '#ffffff', lyricsPreferCC: true };
+const DEFAULTS = { semitones: 0, vocalRemoval: false, vocalStrength: 100, speed: 1, showLyrics: false, lyricsOverlay: true, lyricsStyle: 'panel', lyricsWipe: true, lyricsBg: true, lyricsHl: '#ffd23f', lyricsFg: '#ffffff', lyricsPreferCC: true, queueAutoplay: true };
 const MIN_KEY = -12;
 const MAX_KEY = 12;
 const MIN_SPEED = 0.5;
@@ -10,6 +10,7 @@ const $ = (id) => document.getElementById(id);
 let settings = { ...DEFAULTS };
 let lang = KaraokeI18n.resolve();
 let lastStatus = null;
+let queue = []; // karaoke queue, mirrored from storage (declared early: applyLanguage() renders it)
 
 const t = (key, vars) => KaraokeI18n.t(lang, key, vars);
 
@@ -23,6 +24,7 @@ function applyLanguage() {
   if (lastStatus) showStatus(lastStatus);
   if (lyricsState) renderLyrics(lyricsState);
   if (shownResults) renderResults(shownResults);
+  renderQueue();
 }
 
 function render() {
@@ -431,3 +433,106 @@ chrome.storage.local.get(['settings', 'uiLang'], ({ settings: saved, uiLang }) =
 applyLanguage();
 refreshStatus();
 setInterval(refreshStatus, 1000);
+
+// ---------- karaoke queue ----------
+
+function queueMsg(text) {
+  $('queueMsg').textContent = text || '';
+}
+
+function renderQueue() {
+  const list = $('queueList');
+  list.textContent = '';
+  $('queueCount').textContent = queue.length ? `(${queue.length})` : '';
+  $('queueEmpty').hidden = queue.length > 0;
+  $('queueClear').disabled = !queue.length;
+  $('queueNext').disabled = !queue.length;
+  $('queueAutoplay').checked = settings.queueAutoplay !== false;
+  queue.forEach((item, i) => {
+    const li = document.createElement('li');
+    const text = document.createElement('span');
+    text.className = 'qt';
+    const b = document.createElement('b');
+    b.textContent = item.title || item.videoId;
+    b.title = item.title || item.videoId;
+    const small = document.createElement('small');
+    small.textContent = item.channel || '';
+    text.append(b, small);
+    const btn = (label, cls, aria, onClick, disabled) => {
+      const el = document.createElement('button');
+      el.type = 'button';
+      el.className = `qb ${cls}`;
+      el.textContent = label;
+      el.title = el.ariaLabel = t(aria);
+      el.disabled = !!disabled;
+      el.addEventListener('click', onClick);
+      return el;
+    };
+    li.append(
+      text,
+      btn('▶', 'play', 'queuePlay', () => playFromQueue(item.key)),
+      btn('↑', '', 'queueUp', () => chrome.runtime.sendMessage({ type: 'queue:move', key: item.key, delta: -1 }), i === 0),
+      btn('↓', '', 'queueDown', () => chrome.runtime.sendMessage({ type: 'queue:move', key: item.key, delta: 1 }), i === queue.length - 1),
+      btn('✕', '', 'queueRemove', () => chrome.runtime.sendMessage({ type: 'queue:remove', key: item.key }))
+    );
+    list.append(li);
+  });
+}
+
+function addToQueue(payload) {
+  chrome.runtime.sendMessage({ type: 'queue:add', ...payload }, (res) => {
+    if (chrome.runtime.lastError || !res) return queueMsg(t('queueBadLink'));
+    if (res.ok) queueMsg(t('queueAddedMsg', { title: res.title }));
+    else queueMsg(res.error === 'exists' ? t('queueExists') : t('queueBadLink'));
+  });
+}
+
+// Take an item off the queue (the first by default) and open it in this YouTube tab, or a new tab
+function playFromQueue(key) {
+  chrome.runtime.sendMessage({ type: 'queue:take', key }, async (res) => {
+    if (chrome.runtime.lastError || !res || !res.item) return;
+    const tab = await activeTab();
+    const onYouTube = !!(tab && tab.url && YOUTUBE_RE.test(tab.url));
+    const origin = onYouTube ? new URL(tab.url).origin : 'https://www.youtube.com';
+    const url = `${origin}/watch?v=${encodeURIComponent(res.item.videoId)}`;
+    if (onYouTube) chrome.tabs.update(tab.id, { url });
+    else chrome.tabs.create({ url });
+  });
+}
+
+$('queueAddCurrent').addEventListener('click', async () => {
+  const tab = await activeTab();
+  const videoId = tab && tab.url ? KaraokeLyrics.parseVideoId(tab.url) : null;
+  if (!videoId) return queueMsg(t('queueNotVideo'));
+  const title = (tab.title || '').replace(/^\(\d+\)\s*/, '').replace(/\s*-\s*YouTube( Music)?$/, '').trim();
+  addToQueue(title ? { videoId, title } : { videoId });
+});
+
+$('queueForm').addEventListener('submit', (e) => {
+  e.preventDefault();
+  const input = $('queueInput').value.trim();
+  if (!input) return;
+  if (!KaraokeLyrics.parseVideoId(input)) return queueMsg(t('queueBadLink'));
+  addToQueue({ input });
+  $('queueInput').value = '';
+});
+
+$('queueNext').addEventListener('click', () => playFromQueue());
+$('queueClear').addEventListener('click', () => chrome.runtime.sendMessage({ type: 'queue:clear' }));
+$('queueAutoplay').addEventListener('change', (e) => save({ queueAutoplay: e.target.checked }));
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === 'local' && changes.queue) {
+    queue = changes.queue.newValue || [];
+    renderQueue();
+  }
+});
+chrome.storage.local.get('queue', ({ queue: q }) => {
+  queue = q || [];
+  renderQueue();
+});
+// The guide opens as the extension's options page (one tab, reused if already open)
+$('openInfo').addEventListener('click', (e) => {
+  e.preventDefault();
+  chrome.runtime.openOptionsPage();
+});

@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Karaoke for YouTube</title>
+  <link rel="icon" href="icons/icon32.png">
+  <link rel="stylesheet" href="info.css">
+</head>
+<body>
+  <header class="top">
+    <div class="wrap top-inner">
+      <img src="icons/icon128.png" alt="" width="44" height="44">
+      <div class="brand">
+        <strong>Karaoke for YouTube</strong>
+        <span id="version" class="muted"></span>
+      </div>
+      <div class="lang" role="group" data-i18n-aria="language">
+        <button type="button" data-lang="th">TH</button>
+        <button type="button" data-lang="en">EN</button>
+      </div>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="hero">
+      <h1 data-i18n="infoHeroTitle"></h1>
+      <p class="lead" data-i18n="infoHeroLead"></p>
+      <div class="hero-actions">
+        <a class="btn primary" href="https://www.youtube.com/" target="_blank" rel="noopener" data-i18n="infoOpenYouTube"></a>
+        <a class="btn coffee" href="https://buymeacoffee.com/jame.jpwn" target="_blank" rel="noopener">☕ <span data-i18n="infoCoffee"></span></a>
+      </div>
+    </section>
+
+    <nav class="toc" data-i18n-aria="infoToc">
+      <a href="#start" data-i18n="infoStartTitle"></a>
+      <a href="#features" data-i18n="infoFeaturesTitle"></a>
+      <a href="#shortcuts" data-i18n="infoShortcutsTitle"></a>
+      <a href="#help" data-i18n="infoHelpTitle"></a>
+      <a href="#privacy" data-i18n="infoPrivacyTitle"></a>
+    </nav>
+
+    <section id="start">
+      <h2 data-i18n="infoStartTitle"></h2>
+      <ol class="steps">
+        <li><b data-i18n="infoStep1Title"></b><span data-i18n="infoStep1"></span></li>
+        <li><b data-i18n="infoStep2Title"></b><span data-i18n="infoStep2"></span></li>
+        <li><b data-i18n="infoStep3Title"></b><span data-i18n="infoStep3"></span></li>
+      </ol>
+    </section>
+
+    <section id="features">
+      <h2 data-i18n="infoFeaturesTitle"></h2>
+      <div class="grid">
+        <article class="card"><h3>🎵 <span data-i18n="infoKeyTitle"></span></h3><p data-i18n="infoKeyText"></p></article>
+        <article class="card"><h3>🎤 <span data-i18n="infoVocalTitle"></span></h3><p data-i18n="infoVocalText"></p></article>
+        <article class="card"><h3>⏩ <span data-i18n="infoSpeedTitle"></span></h3><p data-i18n="infoSpeedText"></p></article>
+        <article class="card"><h3>📝 <span data-i18n="infoLyricsTitle"></span></h3><p data-i18n="infoLyricsText"></p></article>
+        <article class="card"><h3>⏱ <span data-i18n="infoSyncTitle"></span></h3><p data-i18n="infoSyncText"></p></article>
+        <article class="card"><h3>🎶 <span data-i18n="infoQueueTitle"></span></h3><p data-i18n="infoQueueText"></p></article>
+      </div>
+    </section>
+
+    <section id="shortcuts">
+      <h2 data-i18n="infoShortcutsTitle"></h2>
+      <p data-i18n="infoShortcutsLead"></p>
+      <table class="keys">
+        <thead><tr><th data-i18n="infoShortcutAction"></th><th data-i18n="infoShortcutKeys"></th></tr></thead>
+        <tbody id="shortcutRows"></tbody>
+      </table>
+      <div class="row">
+        <button id="openShortcuts" type="button" class="btn primary" data-i18n="infoShortcutsChange"></button>
+        <span class="muted small" data-i18n="infoShortcutsNote"></span>
+      </div>
+    </section>
+
+    <section id="help">
+      <h2 data-i18n="infoHelpTitle"></h2>
+      <details><summary data-i18n="infoFaq1Q"></summary><p data-i18n="infoFaq1A"></p></details>
+      <details><summary data-i18n="infoFaq2Q"></summary><p data-i18n="infoFaq2A"></p></details>
+      <details><summary data-i18n="infoFaq3Q"></summary><p data-i18n="infoFaq3A"></p></details>
+      <details><summary data-i18n="infoFaq4Q"></summary><p data-i18n="infoFaq4A"></p></details>
+      <details><summary data-i18n="infoFaq5Q"></summary><p data-i18n="infoFaq5A"></p></details>
+    </section>
+
+    <section id="privacy">
+      <h2 data-i18n="infoPrivacyTitle"></h2>
+      <p data-i18n="infoPrivacyText"></p>
+    </section>
+
+    <section class="support">
+      <h2 data-i18n="infoSupportTitle"></h2>
+      <p data-i18n="infoSupportText"></p>
+      <a class="btn coffee big" href="https://buymeacoffee.com/jame.jpwn" target="_blank" rel="noopener">☕ <span data-i18n="infoCoffee"></span></a>
+    </section>
+  </main>
+
+  <footer class="wrap foot muted small">
+    <span data-i18n="infoTrademark"></span>
+  </footer>
+
+  <script src="i18n.js"></script>
+  <script src="info.js"></script>
+</body>
+</html>

@@ -18,38 +18,48 @@ Sing along on YouTube: change the key without changing tempo, remove vocals, adj
 
 **Description**
 
-Turn any YouTube video into karaoke.
+Turn YouTube into your own karaoke room. Shift the song to your key, take out the vocals, slow it down to practise, and follow the lyrics line by line, all inside the YouTube player.
 
 🎵 CHANGE THE KEY
-• Shift the key from −12 to +12 semitones without changing the tempo
-• High-quality phase-vocoder pitch shifting, processed in real time
+• −12 to +12 semitones, and the tempo stays the same
+• Real-time pitch shifting that keeps voices and instruments sounding natural
 
 🎤 REMOVE VOCALS
-• Removes centre-panned vocals and keeps the bass, drums and stereo image
-• Strength from 0 to 200%: above 100% it also removes off-centre vocals, sibilance and some reverb
+• Takes out vocals mixed in the centre while keeping the bass, drums and stereo width
+• Strength from 0 to 200%: above 100% it also removes off-centre vocals, "s" sounds and some reverb
 
 ⏩ CHANGE THE SPEED
-• 0.5× to 2× without changing the key, so you can practise slowly at your own pitch
+• 0.5× to 2× without changing the key, so you can practise slowly in your own key
 
-📝 LYRICS, EVEN WITHOUT CAPTIONS
+📝 LYRICS THAT FOLLOW THE SONG
 • Uses the video's own captions (CC) when it has them, in the song's language rather than a translation
-• Otherwise finds lyrics automatically from LRCLIB, an open lyrics database
-• Full-lyrics panel that highlights the current line, or a two-line karaoke view
-• Drag and resize the panel; click any line to jump the video there
-• Lyrics with no timing? Tap along once to sync them, and they're remembered for that video
-• Search manually or paste your own lyrics / .lrc file
-• Choose the highlight and text colours, turn the running highlight or the dark panel background on or off
+• Otherwise finds lyrics from LRCLIB, an open lyrics database
+• Full-lyrics panel with the current line highlighted, or a classic two-line karaoke view
+• Move the panel anywhere on the video and resize it from the left, right or bottom edge
+• Click any line to jump the video to that point
+• Lyrics with no timing? Tap along with the song once and they stay synced for that video
+• Pick another version, paste your own lyrics or an .lrc file, and fine-tune the timing in 0.5-second steps
+• Make it yours: choose the highlight and text colours, and turn the running highlight and the dark panel background on or off
+
+🎶 SONG QUEUE
+• Line up the next songs: right-click any video on YouTube → "Add to karaoke queue", add the video you're watching, or paste a link
+• When a song ends, the next one in the queue starts automatically, with an "Up next" note before the end
+• Reorder, remove or play any song straight away from the popup
 
 ⌨️ KEYBOARD SHORTCUTS
 • Alt+Shift+↑ / ↓: key up / down
 • Alt+Shift+V: vocal removal on/off
 • Alt+Shift+L: lyrics on/off
+• Speed shortcuts can be set at chrome://extensions/shortcuts
 
 🌏 Thai and English interface. Works on youtube.com and music.youtube.com.
 
-Privacy: no account, no tracking, no analytics. Settings stay in your browser. Lyrics lookups send only the video's title, channel name and length to lrclib.net, and only while lyrics are switched on.
+🔒 PRIVACY
+No account, no ads, no tracking. Your settings stay in your browser, and audio is processed on your device and never uploaded. Captions are loaded from YouTube itself. While lyrics are switched on, only the video's title, channel name and length are sent to lrclib.net to find a match.
 
-Vocal removal works best on stereo songs with vocals mixed in the centre. Lyrics availability depends on the LRCLIB database.
+GOOD TO KNOW
+• Vocal removal works best on stereo songs with the vocals mixed in the centre.
+• Lyrics depend on the video's captions and the LRCLIB database, so not every song has them. You can always paste your own.
 
 YouTube is a trademark of Google LLC. This extension is not affiliated with or endorsed by Google or YouTube.
 
@@ -65,38 +75,48 @@ YouTube is a trademark of Google LLC. This extension is not affiliated with or e
 
 **คำอธิบาย**
 
-เปลี่ยนวิดีโอ YouTube ให้เป็นคาราโอเกะ
+เปลี่ยน YouTube ให้เป็นห้องคาราโอเกะของคุณ ปรับคีย์ให้เข้ากับเสียงของคุณ ตัดเสียงนักร้องออก ลดความเร็วเพื่อซ้อม และร้องตามเนื้อร้องทีละบรรทัด ทั้งหมดทำได้ในหน้า YouTube เลย
 
 🎵 ปรับคีย์
 • ปรับได้ตั้งแต่ −12 ถึง +12 ครึ่งเสียง โดยจังหวะเพลงไม่เปลี่ยน
-• ปรับคีย์ด้วย phase vocoder คุณภาพสูง ประมวลผลแบบเรียลไทม์
+• ประมวลผลแบบเรียลไทม์ เสียงร้องและเสียงดนตรียังเป็นธรรมชาติ
 
 🎤 ตัดเสียงนักร้อง
-• ตัดเสียงร้องที่อยู่ตรงกลาง โดยยังเก็บเสียงเบส กลอง และความเป็นสเตอริโอไว้
+• ตัดเสียงร้องที่อยู่ตรงกลางเพลงออก โดยยังเก็บเสียงเบส กลอง และความเป็นสเตอริโอไว้
 • ปรับความแรงได้ 0–200% ถ้าตั้งเกิน 100% จะตัดเสียงร้องที่ไม่อยู่ตรงกลางพอดี เสียง ซ/ส และเสียงก้องได้มากขึ้น
 
 ⏩ ปรับความเร็ว
 • ปรับได้ 0.5× ถึง 2× โดยคีย์ไม่เปลี่ยน เหมาะกับการซ้อมร้องช้า ๆ ในคีย์ของตัวเอง
 
-📝 เนื้อร้อง (ใช้ได้แม้วิดีโอไม่มีคำบรรยาย)
+📝 เนื้อร้องที่วิ่งตามเพลง
 • ถ้าวิดีโอมีคำบรรยาย (CC) จะใช้คำบรรยายนั้นก่อน โดยเลือกภาษาเดียวกับเพลง ไม่ใช่คำแปล
-• ถ้าไม่มี จะค้นหาเนื้อร้องอัตโนมัติจาก LRCLIB ซึ่งเป็นฐานข้อมูลเนื้อร้องแบบเปิด
+• ถ้าไม่มี จะค้นหาเนื้อร้องจาก LRCLIB ซึ่งเป็นฐานข้อมูลเนื้อร้องแบบเปิด
 • แผงเนื้อเต็มเพลงที่ไฮไลต์บรรทัดที่กำลังร้อง หรือเลือกแบบคาราโอเกะ 2 บรรทัดก็ได้
-• ลากย้ายและปรับขนาดแผงได้ กดบรรทัดไหนวิดีโอจะข้ามไปตรงนั้น
-• เนื้อร้องไม่มีจังหวะ? กดตามจังหวะเพลงครั้งเดียวเพื่อซิงก์ ระบบจะจำไว้สำหรับวิดีโอนั้น
-• ค้นหาเอง หรือวางเนื้อร้องหรือไฟล์ .lrc ของคุณเองได้
-• เลือกสีไฮไลต์และสีตัวอักษรได้ เปิดหรือปิดตัวอักษรวิ่งและพื้นหลังดำของแผงได้
+• ลากแผงไปวางตรงไหนบนวิดีโอก็ได้ และปรับขนาดได้จากขอบซ้าย ขวา หรือล่าง
+• กดบรรทัดไหน วิดีโอจะข้ามไปตรงนั้น
+• เนื้อร้องไม่มีจังหวะ? กดตามจังหวะเพลงครั้งเดียว ระบบจะจำไว้สำหรับวิดีโอนั้นตลอด
+• เลือกเนื้อร้องเวอร์ชันอื่น วางเนื้อร้องหรือไฟล์ .lrc ของคุณเอง และปรับเวลาให้ตรงได้ทีละ 0.5 วินาที
+• ปรับให้เป็นสไตล์ของคุณ: เลือกสีไฮไลต์และสีตัวอักษร เปิดหรือปิดตัวอักษรวิ่ง และพื้นหลังดำของแผงได้
+
+🎶 คิวเพลง
+• จองเพลงถัดไปได้: คลิกขวาที่วิดีโอบน YouTube แล้วเลือก "เพิ่มเข้าคิวคาราโอเกะ" เพิ่มวิดีโอที่กำลังดู หรือวางลิงก์
+• พอเพลงจบ เพลงถัดไปในคิวจะเล่นต่อเอง และบอกชื่อเพลงถัดไปก่อนเพลงจบ
+• เรียงลำดับใหม่ ลบ หรือกดเล่นเพลงไหนก็ได้ทันทีจากป๊อปอัป
 
 ⌨️ คีย์ลัด
 • Alt+Shift+↑ / ↓: เพิ่มหรือลดคีย์
 • Alt+Shift+V: เปิดหรือปิดการตัดเสียงร้อง
 • Alt+Shift+L: เปิดหรือปิดเนื้อร้อง
+• ตั้งคีย์ลัดปรับความเร็วได้ที่ chrome://extensions/shortcuts
 
 🌏 หน้าจอมีภาษาไทยและอังกฤษ ใช้ได้กับ youtube.com และ music.youtube.com
 
-ความเป็นส่วนตัว: ไม่ต้องสมัครบัญชี ไม่มีการติดตามผู้ใช้ และไม่มีระบบวิเคราะห์การใช้งาน การตั้งค่าเก็บอยู่ในเบราว์เซอร์ของคุณ การค้นหาเนื้อร้องจะส่งเฉพาะชื่อวิดีโอ ชื่อช่อง และความยาววิดีโอไปที่ lrclib.net และส่งเฉพาะตอนที่เปิดใช้เนื้อร้องเท่านั้น
+🔒 ความเป็นส่วนตัว
+ไม่ต้องสมัครบัญชี ไม่มีโฆษณา และไม่ติดตามผู้ใช้ การตั้งค่าเก็บอยู่ในเบราว์เซอร์ของคุณ เสียงประมวลผลในเครื่องและไม่ถูกอัปโหลด คำบรรยายโหลดจาก YouTube โดยตรง ระหว่างที่เปิดใช้เนื้อร้อง จะส่งเฉพาะชื่อวิดีโอ ชื่อช่อง และความยาววิดีโอไปที่ lrclib.net เพื่อค้นหาเนื้อร้องที่ตรงกัน
 
-การตัดเสียงร้องได้ผลดีที่สุดกับเพลงสเตอริโอที่มิกซ์เสียงร้องไว้ตรงกลาง เพลงจะมีเนื้อร้องหรือไม่ขึ้นอยู่กับฐานข้อมูล LRCLIB
+ควรรู้
+• การตัดเสียงร้องได้ผลดีที่สุดกับเพลงสเตอริโอที่มิกซ์เสียงร้องไว้ตรงกลาง
+• เนื้อร้องขึ้นอยู่กับคำบรรยายของวิดีโอและฐานข้อมูล LRCLIB จึงไม่ได้มีทุกเพลง แต่วางเนื้อร้องเองได้เสมอ
 
 YouTube เป็นเครื่องหมายการค้าของ Google LLC ส่วนขยายนี้ไม่ได้เกี่ยวข้องกับหรือได้รับการรับรองจาก Google หรือ YouTube
 

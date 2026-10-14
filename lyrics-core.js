@@ -203,6 +203,26 @@
     return { best, asr };
   }
 
+  // YouTube video ID from a link (watch, youtu.be, shorts, embed, live, music) or a bare 11-char ID
+  const VIDEO_ID_RE = /^[A-Za-z0-9_-]{11}$/;
+  function parseVideoId(input) {
+    const s = String(input || '').trim();
+    if (VIDEO_ID_RE.test(s)) return s;
+    let u;
+    try {
+      u = new URL(/^[a-z]+:\/\//i.test(s) ? s : `https://${s}`);
+    } catch {
+      return null;
+    }
+    const host = u.hostname.replace(/^www\.|^m\./, '');
+    let id = null;
+    if (host === 'youtu.be') id = u.pathname.split('/')[1];
+    else if (host === 'youtube.com' || host === 'music.youtube.com' || host === 'youtube-nocookie.com') {
+      id = u.searchParams.get('v') || (u.pathname.match(/^\/(?:shorts|embed|live|v)\/([^/?#]+)/) || [])[1] || null;
+    }
+    return id && VIDEO_ID_RE.test(id) ? id : null;
+  }
+
   // "Track – Artist", without repeating the artist when the track name already contains it
   function displayName({ trackName, artistName }) {
     const track = trackName || '';
@@ -212,6 +232,7 @@
   }
 
   globalThis.KaraokeLyrics = {
+    parseVideoId,
     displayName,
     json3ToLrc,
     pickCaptionTracks,

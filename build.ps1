@@ -12,7 +12,7 @@ $version = (Get-Content (Join-Path $root 'manifest.json') -Raw | ConvertFrom-Jso
 $files = @(
   'manifest.json',
   'background.js', 'content.js', 'lyrics.js', 'lyrics-core.js', 'i18n.js', 'karaoke-processor.js', 'yt-bridge.js',
-  'popup.html', 'popup.css', 'popup.js'
+  'popup.html', 'popup.css', 'popup.js', 'info.html', 'info.css', 'info.js'
 )
 $dirs = @('icons', '_locales')
 

@@ -6,5 +6,7 @@
   "cmdToggleVocal": { "message": "เปิด/ปิด ตัดเสียงร้อง" },
   "cmdSpeedUp": { "message": "เร่งความเร็ว (+0.05×)" },
   "cmdSpeedDown": { "message": "ลดความเร็ว (−0.05×)" },
-  "cmdToggleLyrics": { "message": "แสดง/ซ่อน เนื้อร้อง" }
+  "cmdToggleLyrics": { "message": "แสดง/ซ่อน เนื้อร้อง" },
+  "ctxQueueAdd": { "message": "เพิ่มเข้าคิวคาราโอเกะ" },
+  "ctxQueueAddPage": { "message": "เพิ่มวิดีโอนี้เข้าคิวคาราโอเกะ" }
 }

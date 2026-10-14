@@ -2,10 +2,11 @@
   "manifest_version": 3,
   "name": "__MSG_extName__",
   "short_name": "YT Karaoke",
-  "version": "1.0.0",
+  "version": "1.2.0",
   "description": "__MSG_extDescription__",
   "default_locale": "en",
-  "permissions": ["storage"],
+  "permissions": ["storage", "scripting"],
+  "host_permissions": ["https://lrclib.net/*", "https://www.youtube.com/*", "https://m.youtube.com/*", "https://music.youtube.com/*"],
   "background": {
     "service_worker": "background.js"
   },
@@ -28,7 +29,7 @@
   "content_scripts": [
     {
       "matches": ["https://www.youtube.com/*", "https://m.youtube.com/*", "https://music.youtube.com/*"],
-      "js": ["i18n.js", "content.js"],
+      "js": ["i18n.js", "lyrics-core.js", "content.js", "lyrics.js"],
       "run_at": "document_idle"
     }
   ],
@@ -50,6 +51,10 @@
     "toggle-vocal": {
       "suggested_key": { "default": "Alt+Shift+V" },
       "description": "__MSG_cmdToggleVocal__"
+    },
+    "toggle-lyrics": {
+      "suggested_key": { "default": "Alt+Shift+L" },
+      "description": "__MSG_cmdToggleLyrics__"
     },
     "speed-up": {
       "description": "__MSG_cmdSpeedUp__"

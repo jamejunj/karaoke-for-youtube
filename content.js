@@ -1,5 +1,16 @@
 (() => {
-  const DEFAULTS = { semitones: 0, vocalRemoval: false, vocalStrength: 100, speed: 1 };
+  // Newest copy wins (see lyrics.js): after an extension reload the popup re-injects this script,
+  // and an older copy that is still running stops answering and stops touching the page.
+  const instanceId = Math.random().toString(36).slice(2);
+  const OWNER_ATTR = 'data-yt-karaoke-audio';
+  let dead = false;
+  document.documentElement.setAttribute(OWNER_ATTR, instanceId);
+  document.dispatchEvent(new Event('yt-karaoke-audio-takeover'));
+  document.addEventListener('yt-karaoke-audio-takeover', () => {
+    if (document.documentElement.getAttribute(OWNER_ATTR) !== instanceId) dead = true;
+  });
+
+  const DEFAULTS = { semitones: 0, vocalRemoval: false, vocalStrength: 100, speed: 1, showLyrics: false, lyricsOverlay: true, lyricsStyle: 'panel', lyricsWipe: true, lyricsBg: true, lyricsHl: '#ffd23f', lyricsFg: '#ffffff' };
 
   let settings = { ...DEFAULTS };
   let lang = KaraokeI18n.resolve();
@@ -77,7 +88,18 @@
 
   function hook(video) {
     if (sources.has(video)) return;
-    const src = ctx.createMediaElementSource(video);
+    let src;
+    try {
+      src = ctx.createMediaElementSource(video);
+    } catch (err) {
+      // An older copy of the extension (before an update) already owns this video's audio
+      if (err && err.name === 'InvalidStateError') {
+        const e = new Error('needs-refresh');
+        e.needsRefresh = true;
+        throw e;
+      }
+      throw err;
+    }
     src.connect(routedMode === 'fx' ? fxNode : ctx.destination);
     sources.set(video, src);
   }
@@ -85,6 +107,7 @@
   // ---------- speed (browser time-stretch, pitch preserved) ----------
   let speedTouched = false;
   function applySpeed(video) {
+    if (dead) return;
     const speed = settings.speed;
     // At 1× leave YouTube's own speed menu in charge, unless we changed it earlier
     if (speed === 1 && !speedTouched) return;
@@ -97,6 +120,7 @@
   }
 
   async function update() {
+    if (dead) return;
     applySpeed();
     pushParams();
     // Leave YouTube's audio untouched until an effect is actually needed
@@ -121,7 +145,7 @@
       status = routedMode === 'fx' ? 'active' : 'bypass';
       lastError = '';
     } catch (err) {
-      status = 'error';
+      status = err && err.needsRefresh ? 'needs-refresh' : 'error';
       lastError = String((err && err.message) || err);
       console.error('[YouTube Karaoke]', err);
     }
@@ -131,20 +155,25 @@
   let toastHost = null;
   let toastTimer = 0;
   function toast(text) {
+    // Hide toasts left by an orphaned older copy of this script
+    for (const other of document.querySelectorAll('.yt-karaoke-toast')) if (other !== toastHost) other.remove();
     if (!toastHost) {
       toastHost = document.createElement('div');
+      toastHost.className = 'yt-karaoke-toast';
       const root = toastHost.attachShadow({ mode: 'open' });
-      root.innerHTML = `
-        <style>
-          .t { position: fixed; top: 72px; left: 50%; transform: translate(-50%, -8px);
-               z-index: 2147483647; padding: 10px 18px; border-radius: 999px;
-               background: rgba(20, 20, 24, .92); color: #fff; opacity: 0;
-               font: 600 14px/1.3 system-ui, "Noto Sans Thai", sans-serif;
-               box-shadow: 0 6px 24px rgba(0,0,0,.35); pointer-events: none;
-               transition: opacity .2s, transform .2s; }
-          .t.show { opacity: 1; transform: translate(-50%, 0); }
-        </style>
-        <div class="t"></div>`;
+      // No innerHTML: YouTube enforces Trusted Types
+      const style = document.createElement('style');
+      style.textContent = `
+        .t { position: fixed; top: 72px; left: 50%; transform: translate(-50%, -8px);
+             z-index: 2147483647; padding: 10px 18px; border-radius: 999px;
+             background: rgba(20, 20, 24, .92); color: #fff; opacity: 0;
+             font: 600 14px/1.3 system-ui, "Noto Sans Thai", sans-serif;
+             box-shadow: 0 6px 24px rgba(0,0,0,.35); pointer-events: none;
+             transition: opacity .2s, transform .2s; }
+        .t.show { opacity: 1; transform: translate(-50%, 0); }`;
+      const box = document.createElement('div');
+      box.className = 't';
+      root.append(style, box);
       document.documentElement.appendChild(toastHost);
     }
     const el = toastHost.shadowRoot.querySelector('.t');
@@ -169,7 +198,7 @@
   });
 
   chrome.storage.onChanged.addListener((changes, area) => {
-    if (area !== 'local') return;
+    if (dead || area !== 'local') return;
     if (changes.uiLang) lang = KaraokeI18n.resolve(changes.uiLang.newValue);
     if (!changes.settings) return;
     settings = { ...DEFAULTS, ...changes.settings.newValue };
@@ -198,8 +227,9 @@
   );
 
   chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+    if (dead) return;
     if (msg && msg.type === 'karaoke:status') {
-      sendResponse({ status, error: lastError, hasVideo: !!document.querySelector('video') });
+      sendResponse({ status, error: lastError, hasVideo: !!document.querySelector('video'), version: chrome.runtime.getManifest().version });
     }
   });
 })();

@@ -11,6 +11,7 @@
     <div class="title">
       <h1>YouTube Karaoke</h1>
       <p id="status" class="status" data-i18n="statusChecking"></p>
+      <button id="reloadTab" type="button" class="chip solid reload" data-i18n="reloadTab" hidden></button>
     </div>
     <div class="lang" role="group" data-i18n-aria="language">
       <button type="button" data-lang="th">TH</button>
@@ -68,13 +69,93 @@
     <p id="vocalHint" class="hint"></p>
   </section>
 
+  <section class="card">
+    <div class="card-head">
+      <h2 id="lyricsTitle" data-i18n="lyricsTitle"></h2>
+      <label class="switch">
+        <input id="lyricsToggle" type="checkbox" aria-labelledby="lyricsTitle">
+        <span></span>
+      </label>
+    </div>
+    <div class="lyr-state" role="status" aria-live="polite">
+      <span id="lyrBadge" class="badge"></span>
+      <span id="lyrDetail" class="lyr-detail"></span>
+      <button id="lyrRetry" type="button" class="link" data-i18n="lyricsRetry" hidden></button>
+    </div>
+
+    <div id="lyricsTools" hidden>
+      <label class="check">
+        <input id="overlayToggle" type="checkbox">
+        <span data-i18n="overlayToggle"></span>
+      </label>
+      <div id="styleRow" class="style-row">
+        <span data-i18n="styleLabel"></span>
+        <div class="seg" role="group" data-i18n-aria="styleLabel">
+          <button type="button" data-style="panel" data-i18n="stylePanel"></button>
+          <button type="button" data-style="lines" data-i18n="styleLines"></button>
+        </div>
+      </div>
+      <div id="lookBox" class="look">
+        <label class="check">
+          <input id="wipeToggle" type="checkbox">
+          <span data-i18n="optWipe"></span>
+        </label>
+        <label class="check">
+          <input id="bgToggle" type="checkbox">
+          <span data-i18n="optBg"></span>
+        </label>
+        <div class="colors">
+          <label class="color"><input id="hlColor" type="color" value="#ffd23f"><span data-i18n="colorHl"></span></label>
+          <label class="color"><input id="fgColor" type="color" value="#ffffff"><span data-i18n="colorFg"></span></label>
+          <button id="colorReset" type="button" class="link" data-i18n="colorReset"></button>
+        </div>
+        <div id="lookPreview" class="look-preview" aria-hidden="true">
+          <span class="pv-line"><span class="pv-base">Karaoke ♪ คาราโอเกะ</span><span class="pv-hi">Karaoke ♪ คาราโอเกะ</span></span>
+        </div>
+      </div>
+
+      <div id="viewer" class="viewer" hidden></div>
+      <p id="viewerHint" class="hint viewer-hint" hidden></p>
+
+      <div id="offsetRow" class="offset-row">
+        <button id="offEarlier" type="button" class="chip" data-i18n="offsetEarlier"></button>
+        <div class="offset-value"><small data-i18n="offsetLabel"></small><b id="offValue"></b></div>
+        <button id="offLater" type="button" class="chip" data-i18n="offsetLater"></button>
+      </div>
+
+      <details id="searchBox">
+        <summary data-i18n="searchToggle"></summary>
+        <form id="searchForm" class="search">
+          <input id="searchInput" type="search" data-i18n-placeholder="searchPlaceholder">
+          <button type="submit" class="chip solid" data-i18n="searchButton"></button>
+        </form>
+        <p id="searchMsg" class="hint"></p>
+        <ul id="results" class="results"></ul>
+      </details>
+
+      <details id="pasteBox">
+        <summary data-i18n="pasteToggle"></summary>
+        <textarea id="pasteText" rows="5" data-i18n-placeholder="pastePlaceholder"></textarea>
+        <button id="pasteSave" type="button" class="chip solid" data-i18n="pasteSave"></button>
+      </details>
+
+      <div class="lyrics-foot">
+        <button id="lyricsAuto" type="button" class="link" data-i18n="lyricsAuto"></button>
+        <span class="credit" data-i18n="lyricsCredit"></span>
+      </div>
+    </div>
+  </section>
+
   <footer>
     <span data-i18n="shortcuts"></span>
     <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>↑</kbd>/<kbd>↓</kbd> <span data-i18n="shortcutKey"></span> ·
-    <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd> <span data-i18n="shortcutVocal"></span>
+    <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd> <span data-i18n="shortcutVocal"></span> ·
+    <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>L</kbd> <span data-i18n="shortcutLyrics"></span>
+    <span id="version" class="version"></span>
   </footer>
 
   <script src="i18n.js"></script>
+  <script src="lyrics-core.js"></script>
   <script src="popup.js"></script>
 </body>
 </html>

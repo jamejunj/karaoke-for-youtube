@@ -1,0 +1,9 @@
+{
+  "extName": { "message": "YouTube Karaoke – ปรับคีย์ & ตัดเสียงร้อง" },
+  "extDescription": { "message": "ปรับคีย์เพลง (ไม่เปลี่ยนความเร็ว) และตัดเสียงนักร้องออกจากวิดีโอ YouTube แบบเรียลไทม์" },
+  "cmdKeyUp": { "message": "เพิ่มคีย์ครึ่งเสียง" },
+  "cmdKeyDown": { "message": "ลดคีย์ครึ่งเสียง" },
+  "cmdToggleVocal": { "message": "เปิด/ปิด ตัดเสียงร้อง" },
+  "cmdSpeedUp": { "message": "เร่งความเร็ว (+0.05×)" },
+  "cmdSpeedDown": { "message": "ลดความเร็ว (−0.05×)" }
+}

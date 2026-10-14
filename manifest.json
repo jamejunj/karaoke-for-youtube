@@ -1,0 +1,61 @@
+{
+  "manifest_version": 3,
+  "name": "__MSG_extName__",
+  "short_name": "YT Karaoke",
+  "version": "1.0.0",
+  "description": "__MSG_extDescription__",
+  "default_locale": "en",
+  "permissions": ["storage"],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "YouTube Karaoke",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/*", "https://m.youtube.com/*", "https://music.youtube.com/*"],
+      "js": ["i18n.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["karaoke-processor.js"],
+      "matches": ["https://www.youtube.com/*", "https://m.youtube.com/*", "https://music.youtube.com/*"]
+    }
+  ],
+  "commands": {
+    "key-up": {
+      "suggested_key": { "default": "Alt+Shift+Up" },
+      "description": "__MSG_cmdKeyUp__"
+    },
+    "key-down": {
+      "suggested_key": { "default": "Alt+Shift+Down" },
+      "description": "__MSG_cmdKeyDown__"
+    },
+    "toggle-vocal": {
+      "suggested_key": { "default": "Alt+Shift+V" },
+      "description": "__MSG_cmdToggleVocal__"
+    },
+    "speed-up": {
+      "description": "__MSG_cmdSpeedUp__"
+    },
+    "speed-down": {
+      "description": "__MSG_cmdSpeedDown__"
+    }
+  }
+}

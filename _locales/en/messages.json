@@ -1,0 +1,9 @@
+{
+  "extName": { "message": "YouTube Karaoke – Key Changer & Vocal Remover" },
+  "extDescription": { "message": "Change the key of any YouTube song (tempo unchanged) and remove vocals in real time." },
+  "cmdKeyUp": { "message": "Raise key by a semitone" },
+  "cmdKeyDown": { "message": "Lower key by a semitone" },
+  "cmdToggleVocal": { "message": "Toggle vocal removal" },
+  "cmdSpeedUp": { "message": "Speed up (+0.05×)" },
+  "cmdSpeedDown": { "message": "Slow down (−0.05×)" }
+}

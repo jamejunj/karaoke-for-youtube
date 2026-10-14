@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8">
+  <title>YouTube Karaoke</title>
+  <link rel="stylesheet" href="popup.css">
+</head>
+<body>
+  <header>
+    <img src="icons/icon48.png" alt="" width="28" height="28">
+    <div class="title">
+      <h1>YouTube Karaoke</h1>
+      <p id="status" class="status" data-i18n="statusChecking"></p>
+    </div>
+    <div class="lang" role="group" data-i18n-aria="language">
+      <button type="button" data-lang="th">TH</button>
+      <button type="button" data-lang="en">EN</button>
+    </div>
+  </header>
+
+  <section class="card">
+    <div class="card-head">
+      <h2 data-i18n="keyTitle"></h2>
+      <button id="keyReset" class="link" type="button" data-i18n="reset"></button>
+    </div>
+    <div class="key-row">
+      <button id="keyDown" class="round" type="button" data-i18n-aria="keyDown">−</button>
+      <div class="key-display">
+        <span id="keyValue">0</span>
+        <small id="keyLabel"></small>
+      </div>
+      <button id="keyUp" class="round" type="button" data-i18n-aria="keyUp">+</button>
+    </div>
+    <input id="keySlider" type="range" min="-12" max="12" step="1" value="0" data-i18n-aria="keySlider">
+    <div class="scale"><span>−12</span><span>0</span><span>+12</span></div>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2 data-i18n="speedTitle"></h2>
+      <button id="speedReset" class="link" type="button" data-i18n="reset"></button>
+    </div>
+    <div class="key-row">
+      <button id="speedDown" class="round" type="button" data-i18n-aria="speedDown">−</button>
+      <div class="key-display">
+        <span id="speedValue">1.00×</span>
+        <small id="speedLabel"></small>
+      </div>
+      <button id="speedUp" class="round" type="button" data-i18n-aria="speedUp">+</button>
+    </div>
+    <input id="speedSlider" type="range" min="0.5" max="2" step="0.05" value="1" data-i18n-aria="speedSlider">
+    <div class="scale"><span>0.5×</span><span>1×</span><span>1.5×</span><span>2×</span></div>
+  </section>
+
+  <section class="card">
+    <div class="card-head">
+      <h2 id="vocalTitle" data-i18n="vocalTitle"></h2>
+      <label class="switch">
+        <input id="vocalToggle" type="checkbox" aria-labelledby="vocalTitle">
+        <span></span>
+      </label>
+    </div>
+    <div id="strengthRow" class="strength">
+      <label for="vocalStrength"><span data-i18n="strength"></span> <b id="strengthValue">100%</b></label>
+      <input id="vocalStrength" type="range" min="0" max="200" step="5" value="100">
+      <div class="scale"><span>0%</span><span>100%</span><span>200%</span></div>
+    </div>
+    <p id="vocalHint" class="hint"></p>
+  </section>
+
+  <footer>
+    <span data-i18n="shortcuts"></span>
+    <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>↑</kbd>/<kbd>↓</kbd> <span data-i18n="shortcutKey"></span> ·
+    <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>V</kbd> <span data-i18n="shortcutVocal"></span>
+  </footer>
+
+  <script src="i18n.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>

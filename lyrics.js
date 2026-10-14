@@ -23,6 +23,7 @@
 
   let show = false; // lyrics loading enabled (popup switch)
   let overlayOn = true; // also draw them over the video
+  let preferCC = true; // use the video's own uploaded captions before LRCLIB
   let docVersion = 0; // bumps whenever the loaded lyrics change
   let videoId = null;
   let status = 'off'; // off | waiting | searching | found | notfound | error | no-video
@@ -109,10 +110,133 @@
     renderNow();
   }
 
+  // Lyrics the user chose, pasted or synced win over an automatic search still in flight
+  function cancelAutoLoad() {
+    loadToken++;
+    clearTimeout(loadTimer);
+  }
+
   function scheduleLoad(delay = META_WAIT_MS) {
     clearTimeout(loadTimer);
     if (!show || !videoId) return;
     loadTimer = setTimeout(load, delay);
+  }
+
+  // ---------- YouTube captions (CC) ----------
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  // Ask yt-bridge.js (page MAIN world) for the player's caption tracks
+  function playerCaptions() {
+    return new Promise((resolve) => {
+      const id = Math.random().toString(36).slice(2);
+      const done = (value) => {
+        document.removeEventListener('yt-karaoke-cc-response', onResponse);
+        clearTimeout(timer);
+        resolve(value);
+      };
+      const onResponse = (e) => {
+        let d;
+        try {
+          d = JSON.parse(e.detail);
+        } catch {
+          return;
+        }
+        if (d && d.id === id) done(d);
+      };
+      const timer = setTimeout(() => done(null), 1500);
+      document.addEventListener('yt-karaoke-cc-response', onResponse);
+      document.dispatchEvent(new CustomEvent('yt-karaoke-cc-request', { detail: id }));
+    });
+  }
+
+  // Caption tracks for the current video, waiting briefly for the player to switch videos
+  async function captionTracks(vid, token) {
+    for (let i = 0; i < 6; i++) {
+      const r = await playerCaptions();
+      if (token !== loadToken) return null;
+      if (r && r.videoId === vid) return r;
+      await sleep(700);
+    }
+    return null;
+  }
+
+  // YouTube now often returns an empty body for caption URLs without the player's own token.
+  // Remember the timedtext requests the player itself makes (they carry that token).
+  const signedCaptionUrls = new Map(); // videoId -> URL
+  try {
+    new PerformanceObserver((list) => {
+      for (const e of list.getEntries()) {
+        if (!e.name.includes('/api/timedtext')) continue;
+        try {
+          const u = new URL(e.name);
+          const v = u.searchParams.get('v');
+          if (v) signedCaptionUrls.set(v, u.href);
+        } catch {}
+      }
+    }).observe({ type: 'resource', buffered: true });
+  } catch {}
+
+  async function fetchJson3(url) {
+    try {
+      const u = new URL(url, location.origin);
+      u.searchParams.set('fmt', 'json3');
+      const res = await fetch(u.href, { credentials: 'include' });
+      if (!res.ok) return null;
+      const body = await res.text();
+      return body.trim() ? JSON.parse(body) : null;
+    } catch {
+      return null;
+    }
+  }
+
+  // Let the player load captions once (as if CC were pressed) so its signed URL appears, then
+  // put the CC button back the way it was.
+  async function captureSignedUrl(vid) {
+    if (signedCaptionUrls.has(vid)) return signedCaptionUrls.get(vid);
+    const btn = document.querySelector('#movie_player .ytp-subtitles-button, .ytp-subtitles-button');
+    if (!btn) return null;
+    const wasOn = btn.getAttribute('aria-pressed') === 'true';
+    if (!wasOn) btn.click();
+    for (let i = 0; i < 25 && !signedCaptionUrls.has(vid); i++) await sleep(200);
+    if (!wasOn && btn.getAttribute('aria-pressed') === 'true') btn.click();
+    return signedCaptionUrls.get(vid) || null;
+  }
+
+  async function captionLrc(track, vid) {
+    let data = await fetchJson3(track.baseUrl);
+    if (!data) {
+      const signed = await captureSignedUrl(vid);
+      if (signed) {
+        // Keep the player's token parameters, switch to the requested track
+        const u = new URL(signed);
+        const want = new URL(track.baseUrl, location.origin);
+        for (const k of ['lang', 'kind', 'name', 'tlang']) {
+          if (want.searchParams.has(k)) u.searchParams.set(k, want.searchParams.get(k));
+          else u.searchParams.delete(k);
+        }
+        data = await fetchJson3(u.href);
+      }
+    }
+    return data ? L.json3ToLrc(data) : '';
+  }
+
+  const ccName = (track) => `CC · ${track.name || track.lang}${track.kind === 'asr' && !/auto/i.test(track.name) ? ` (${t('ccAuto')})` : ''}`;
+
+  const ccCandidate = (track) => ({
+    id: `cc:${track.vssId}`,
+    cc: track,
+    trackName: ccName(track),
+    artistName: 'YouTube',
+    duration: (video() && video().duration) || 0,
+  });
+
+  // Load a caption track as the lyrics; false if YouTube gave nothing usable
+  async function useCaption(track, token, persist) {
+    const lrc = await captionLrc(track, videoId);
+    if (token !== loadToken || !lrc) return false;
+    setDoc(lrc, { kind: 'cc', trackName: ccName(track), artistName: null, lang: track.lang });
+    if (persist) savePick({ mode: 'cc', vssId: track.vssId, id: null, text: null, offset: 0 });
+    return status === 'found';
   }
 
   async function load() {
@@ -139,27 +263,53 @@
       }
     }
 
+    // Caption tracks from the player (empty when the video has no CC)
+    const cc = await captionTracks(vid, token);
+    if (token !== loadToken) return;
+    const ccTracks = (cc && cc.tracks) || [];
+    const ccPick = L.pickCaptionTracks(ccTracks, cc && cc.defaultIndex);
+    const ccCandidates = ccTracks.map(ccCandidate);
+
+    if (stored.mode === 'cc' && stored.vssId) {
+      const track = ccTracks.find((x) => x.vssId === stored.vssId);
+      if (track && (await useCaption(track, token, false))) {
+        candidates = ccCandidates;
+        return;
+      }
+      if (token !== loadToken) return;
+    }
+
+    // Uploaded captions in the song's language usually are the lyrics
+    if (preferCC && ccPick.best && (await useCaption(ccPick.best, token, false))) {
+      candidates = ccCandidates;
+      return;
+    }
+    if (token !== loadToken) return;
+
     // Wait until the page shows this video's title and duration
     for (let i = 0; i < 10; i++) {
       meta = readMeta();
       if (meta.title && meta.duration) break;
-      await new Promise((r) => setTimeout(r, 1000));
+      await sleep(1000);
       if (token !== loadToken) return;
     }
     const res = await sendBg({ type: 'lyrics:bg:find', meta });
     if (token !== loadToken) return;
+    candidates = [...ccCandidates, ...((res.ok && res.candidates) || [])];
+    if (res.ok && res.best) {
+      useRecord(res.best, false);
+      return;
+    }
+    // Nothing on LRCLIB: fall back to uploaded captions (if not preferred) or auto-generated ones
+    for (const track of [preferCC ? null : ccPick.best, ccPick.asr]) {
+      if (track && (await useCaption(track, token, false))) return;
+      if (token !== loadToken) return;
+    }
     if (!res.ok) {
       status = 'error';
       lastError = res.error || '';
-      renderNow();
-      return;
-    }
-    candidates = res.candidates || [];
-    if (res.best) useRecord(res.best, false);
-    else {
-      status = 'notfound';
-      renderNow();
-    }
+    } else status = 'notfound';
+    renderNow();
   }
 
   function useRecord(rec, persist) {
@@ -173,10 +323,17 @@
     if (persist) savePick({ mode: 'lrclib', id: rec.id });
   }
 
+  // Writes are queued: two quick read-modify-writes would otherwise overwrite each other
+  let pickQueue = Promise.resolve();
   function savePick(patch) {
     if (!videoId) return;
     const key = pickKey(videoId);
-    chrome.storage.local.get(key, (r) => chrome.storage.local.set({ [key]: { ...(r[key] || {}), ...patch } }));
+    pickQueue = pickQueue
+      .then(async () => {
+        const r = await chrome.storage.local.get(key);
+        await chrome.storage.local.set({ [key]: { ...(r[key] || {}), ...patch } });
+      })
+      .catch(() => {});
   }
 
   // ---------- overlay ----------
@@ -230,7 +387,7 @@
     /* full-lyrics panel: draggable by its header, resizable from the corner */
     .panel { position: absolute; left: 62%; top: 6%; width: 34%; height: 76%;
              min-width: 220px; min-height: 160px; max-width: 100%; max-height: 100%;
-             display: flex; flex-direction: column; pointer-events: auto; resize: both; overflow: hidden;
+             display: flex; flex-direction: column; pointer-events: auto; overflow: hidden;
              background: rgba(10,10,14,.76); backdrop-filter: blur(8px); border-radius: 14px; color: #fff;
              box-shadow: 0 8px 30px rgba(0,0,0,.35); container-type: inline-size; }
     .head { display: flex; align-items: center; gap: 2px; padding: 6px 6px 6px 10px; cursor: grab;
@@ -249,7 +406,17 @@
     button.big { all: unset; cursor: pointer; background: #e5243b; color: #fff; font-weight: 700;
                  font-size: 13px; padding: 7px 14px; border-radius: 999px; }
     button.big:focus-visible { outline: 2px solid #fff; }
-    .body { position: relative; flex: 1; overflow-y: auto; padding: 18cqh 12px 40cqh; scrollbar-width: thin; }
+    .body { position: relative; flex: 1; overflow-y: auto; padding: 18cqh 12px 40cqh; scrollbar-width: thin;
+            margin: 0 8px 8px; /* keep the scrollbar clear of the resize edges */ }
+    /* resize handles: left / right / bottom edges and both bottom corners */
+    .rz { position: absolute; z-index: 2; touch-action: none; }
+    .rz-l, .rz-r { top: 14px; bottom: 14px; width: 8px; cursor: ew-resize; }
+    .rz-l { left: 0; } .rz-r { right: 0; }
+    .rz-b { left: 14px; right: 14px; bottom: 0; height: 8px; cursor: ns-resize; }
+    .rz-bl, .rz-br { bottom: 0; width: 16px; height: 16px; }
+    .rz-bl { left: 0; cursor: nesw-resize; } .rz-br { right: 0; cursor: nwse-resize; }
+    .rz:hover, .panel.dragging .rz { background: rgba(255,210,63,.25); }
+    .rz-bl:hover, .rz-br:hover { border-radius: 6px; }
     .ln { position: relative; display: grid; margin: .08em 0; padding: .12em .35em; border-radius: 8px;
           font-size: clamp(14px, 5cqw, 30px); line-height: 1.4; font-weight: 600; color: color-mix(in srgb, var(--fg) 82%, transparent);
           transition: font-size .18s ease, opacity .18s ease; }
@@ -339,7 +506,8 @@
             kb('rec-next', 'recNext', 'big'),
             kb('rec-done', 'recDone'),
             kb('rec-cancel', 'recCancel')),
-          h('div', { class: 'body' })),
+          h('div', { class: 'body' }),
+          ...['l', 'r', 'b', 'bl', 'br'].map((edge) => h('div', { class: `rz rz-${edge}`, 'data-edge': edge, 'aria-hidden': 'true' }))),
         h('div', { class: 'pill hide' }))
     );
     const q = (s) => root.querySelector(s);
@@ -379,7 +547,7 @@
     ui.body.addEventListener('wheel', () => (userScrollAt = performance.now()), { passive: true });
     ui.body.addEventListener('touchmove', () => (userScrollAt = performance.now()), { passive: true });
     ui.head.addEventListener('pointerdown', startDrag);
-    new ResizeObserver(onPanelResize).observe(ui.panel);
+    for (const el of root.querySelectorAll('.rz')) el.addEventListener('pointerdown', (e) => startResize(e, el.dataset.edge));
 
     applyLabels();
     applyBox();
@@ -484,15 +652,44 @@
     e.preventDefault();
   }
 
-  let resizeTimer = 0;
-  function onPanelResize() {
-    if (!ui || ui.panel.hidden || ui.panel.classList.contains('dragging')) return;
-    const b = measureBox();
-    // Only a real size change (user dragging the corner) is saved; player resizes keep the same fractions
-    if (!b || (box && Math.abs(b.w - box.w) < 0.005 && Math.abs(b.h - box.h) < 0.005)) return;
-    if (!box && !ui.panel.style.width) return; // default CSS size, nothing chosen yet
-    clearTimeout(resizeTimer);
-    resizeTimer = setTimeout(saveBox, 300);
+  // Resize from the left, right or bottom edge, or a bottom corner. edge: 'l' | 'r' | 'b' | 'bl' | 'br'
+  const MIN_W = 220;
+  const MIN_H = 160;
+  function startResize(e, edge) {
+    if (e.button !== 0) return;
+    const handle = e.currentTarget;
+    const pr = observedPlayer.getBoundingClientRect();
+    const r = ui.panel.getBoundingClientRect();
+    const start = { x: e.clientX, y: e.clientY, left: r.left - pr.left, top: r.top - pr.top, w: r.width, h: r.height };
+    handle.setPointerCapture(e.pointerId);
+    ui.panel.classList.add('dragging');
+    const move = (ev) => {
+      const dx = ev.clientX - start.x;
+      const dy = ev.clientY - start.y;
+      let { left, w, h } = start;
+      if (edge.includes('r')) w = clamp(start.w + dx, MIN_W, pr.width - start.left);
+      if (edge.includes('l')) {
+        left = clamp(start.left + dx, 0, start.left + start.w - MIN_W);
+        w = start.w + (start.left - left);
+      }
+      if (edge.includes('b')) h = clamp(start.h + dy, MIN_H, pr.height - start.top);
+      const s = ui.panel.style;
+      s.left = `${(left / pr.width) * 100}%`;
+      s.width = `${(w / pr.width) * 100}%`;
+      s.height = `${(h / pr.height) * 100}%`;
+      if (!s.top) s.top = `${(start.top / pr.height) * 100}%`;
+    };
+    const up = () => {
+      handle.removeEventListener('pointermove', move);
+      handle.removeEventListener('pointerup', up);
+      handle.removeEventListener('pointercancel', up);
+      ui.panel.classList.remove('dragging');
+      saveBox();
+    };
+    handle.addEventListener('pointermove', move);
+    handle.addEventListener('pointerup', up);
+    handle.addEventListener('pointercancel', up);
+    e.preventDefault();
   }
 
   // ---------- rendering ----------
@@ -802,6 +999,7 @@
 
   function finishRec() {
     if (!rec) return;
+    cancelAutoLoad();
     const texts = lineTexts();
     const idxs = texts.map((x, i) => (x ? i : -1)).filter((i) => i >= 0);
     const tapped = idxs.filter((i) => rec.times[i] != null);
@@ -848,6 +1046,7 @@
 
   function applySettings(s) {
     overlayOn = !(s && s.lyricsOverlay === false);
+    preferCC = !(s && s.lyricsPreferCC === false);
     style = s && s.lyricsStyle === 'lines' ? 'lines' : 'panel';
     const color = (v, d) => (typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v) ? v : d);
     look = {
@@ -962,13 +1161,31 @@
           source,
           offset,
           query: m ? L.cleanTitle(m.title) : '',
-          candidates: candidates.map(({ syncedLyrics, plainLyrics, ...c }) => ({ ...c, synced: !!syncedLyrics })),
+          candidates: candidates.map(({ syncedLyrics, plainLyrics, cc, ...c }) => ({ ...c, synced: !!syncedLyrics || !!cc })),
         });
         break;
       }
       case 'lyrics:use': {
         const rec = msg.record || candidates.find((c) => c.id === msg.id);
+        if (rec && rec.cc) {
+          // A YouTube caption track picked in the popup
+          const token = ++loadToken;
+          offset = 0;
+          status = 'searching';
+          renderNow();
+          useCaption(rec.cc, token, true).then((ok) => {
+            if (token !== loadToken) return;
+            if (!ok) {
+              status = 'error';
+              lastError = t('ccFailed');
+              renderNow();
+            }
+            sendResponse({ ok });
+          });
+          return true; // async response
+        }
         if (rec) {
+          cancelAutoLoad();
           offset = 0;
           savePick({ mode: 'lrclib', id: rec.id, offset: 0, text: null });
           useRecord(rec, false);
@@ -977,6 +1194,7 @@
         break;
       }
       case 'lyrics:custom':
+        cancelAutoLoad();
         offset = 0;
         savePick({ mode: 'custom', text: msg.text, id: null, offset: 0 });
         setDoc(msg.text, { kind: 'custom' });

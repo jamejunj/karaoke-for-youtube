@@ -1,6 +1,6 @@
 importScripts('lyrics-core.js');
 
-const DEFAULTS = { semitones: 0, vocalRemoval: false, vocalStrength: 100, speed: 1, showLyrics: false, lyricsOverlay: true, lyricsStyle: 'panel', lyricsWipe: true, lyricsBg: true, lyricsHl: '#ffd23f', lyricsFg: '#ffffff' };
+const DEFAULTS = { semitones: 0, vocalRemoval: false, vocalStrength: 100, speed: 1, showLyrics: false, lyricsOverlay: true, lyricsStyle: 'panel', lyricsWipe: true, lyricsBg: true, lyricsHl: '#ffd23f', lyricsFg: '#ffffff', lyricsPreferCC: true };
 const MIN_KEY = -12;
 const MAX_KEY = 12;
 const MIN_SPEED = 0.5;

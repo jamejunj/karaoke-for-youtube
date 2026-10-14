@@ -1,6 +1,6 @@
 {
-  "extName": { "message": "YouTube Karaoke – Key Changer & Vocal Remover" },
-  "extDescription": { "message": "Change the key of any YouTube song (tempo unchanged) and remove vocals in real time." },
+  "extName": { "message": "Karaoke for YouTube™ – Key Changer, Vocal Remover & Lyrics" },
+  "extDescription": { "message": "Sing along on YouTube: change the key without changing tempo, remove vocals, adjust speed and show synced lyrics." },
   "cmdKeyUp": { "message": "Raise key by a semitone" },
   "cmdKeyDown": { "message": "Lower key by a semitone" },
   "cmdToggleVocal": { "message": "Toggle vocal removal" },

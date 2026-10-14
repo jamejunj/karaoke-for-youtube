@@ -159,6 +159,50 @@
     plainLyrics: r.plainLyrics || null,
   });
 
+  // ---------- YouTube captions (CC) ----------
+  const lrcStamp = (s) => {
+    const m = Math.floor(s / 60);
+    return `[${String(m).padStart(2, '0')}:${(s - m * 60).toFixed(2).padStart(5, '0')}]`;
+  };
+  // Caption cues that only mark music/applause become empty lines (shown as ♪ gaps)
+  const CUE_ONLY_RE = /^[\[(（【]?\s*(music|musique|música|applause|instrumental|เพลง|ดนตรี|เสียงดนตรี|♪+|♫+)\s*[\])）】]?$/i;
+
+  // YouTube timedtext "json3" → LRC text. Works for both uploaded and auto-generated (ASR) tracks:
+  // ASR "append" events that only carry a newline are skipped.
+  function json3ToLrc(data) {
+    const lines = [];
+    for (const ev of (data && data.events) || []) {
+      if (!ev.segs || ev.aAppend || typeof ev.tStartMs !== 'number') continue;
+      let text = squash(ev.segs.map((s) => s.utf8 || '').join('').replace(/\n/g, ' '));
+      if (!text) continue;
+      text = text.replace(/^[♪♫\s]+|[♪♫\s]+$/g, '').trim() || text;
+      if (CUE_ONLY_RE.test(text) || /^[♪♫\s]+$/.test(text)) text = '';
+      const t = ev.tStartMs / 1000;
+      const prev = lines[lines.length - 1];
+      if (prev && prev.text === text && t - prev.t < 1) continue;
+      lines.push({ t, text });
+    }
+    if (!lines.some((l) => l.text)) return '';
+    return lines.map((l) => `${lrcStamp(l.t)}${l.text}`).join('\n');
+  }
+
+  // Best caption track for lyrics: an uploaded track in the song's own language (the ASR track's
+  // language tells us what is sung), then YouTube's default track, then any uploaded track.
+  // Auto-generated tracks are returned separately as a last resort.
+  function pickCaptionTracks(tracks, defaultIndex) {
+    const list = tracks || [];
+    const manual = list.filter((t) => t.kind !== 'asr');
+    const asr = list.find((t) => t.kind === 'asr') || null;
+    const sameLang = (a, b) => a && b && a.split('-')[0].toLowerCase() === b.split('-')[0].toLowerCase();
+    const def = Number.isInteger(defaultIndex) ? list[defaultIndex] : null;
+    const best =
+      (asr && manual.find((t) => sameLang(t.lang, asr.lang))) ||
+      (def && def.kind !== 'asr' ? def : null) ||
+      manual[0] ||
+      null;
+    return { best, asr };
+  }
+
   // "Track – Artist", without repeating the artist when the track name already contains it
   function displayName({ trackName, artistName }) {
     const track = trackName || '';
@@ -169,6 +213,8 @@
 
   globalThis.KaraokeLyrics = {
     displayName,
+    json3ToLrc,
+    pickCaptionTracks,
     cleanTitle,
     cleanChannel,
     splitParts,

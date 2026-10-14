@@ -1,4 +1,4 @@
-const DEFAULTS = { semitones: 0, vocalRemoval: false, vocalStrength: 100, speed: 1, showLyrics: false, lyricsOverlay: true, lyricsStyle: 'panel', lyricsWipe: true, lyricsBg: true, lyricsHl: '#ffd23f', lyricsFg: '#ffffff' };
+const DEFAULTS = { semitones: 0, vocalRemoval: false, vocalStrength: 100, speed: 1, showLyrics: false, lyricsOverlay: true, lyricsStyle: 'panel', lyricsWipe: true, lyricsBg: true, lyricsHl: '#ffd23f', lyricsFg: '#ffffff', lyricsPreferCC: true };
 const MIN_KEY = -12;
 const MAX_KEY = 12;
 const MIN_SPEED = 0.5;
@@ -144,6 +144,7 @@ async function reconnect(tab) {
   if (injectedTabs.has(tab.id)) return false;
   injectedTabs.add(tab.id);
   try {
+    await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: ['yt-bridge.js'], world: 'MAIN' });
     await chrome.scripting.executeScript({ target: { tabId: tab.id }, files: CONTENT_SCRIPTS });
     return true;
   } catch (err) {
@@ -223,6 +224,7 @@ function renderLyrics(st) {
   const active = !!(st && st.show && st.videoId);
   $('lyricsTools').hidden = !active;
   $('overlayToggle').checked = settings.lyricsOverlay !== false;
+  $('preferCCToggle').checked = settings.lyricsPreferCC !== false;
   $('styleRow').hidden = settings.lyricsOverlay === false;
   for (const b of document.querySelectorAll('[data-style]')) b.setAttribute('aria-pressed', String(b.dataset.style === (settings.lyricsStyle === 'lines' ? 'lines' : 'panel')));
   if (active) {
@@ -317,6 +319,11 @@ $('lyrRetry').addEventListener('click', async () => {
   refreshStatus();
 });
 $('overlayToggle').addEventListener('change', (e) => save({ lyricsOverlay: e.target.checked }));
+$('preferCCToggle').addEventListener('change', async (e) => {
+  save({ lyricsPreferCC: e.target.checked });
+  // re-run the automatic choice with the new preference (keeps lyrics you picked or pasted)
+  if (!lyricsState || !lyricsState.source || lyricsState.source.kind !== 'custom') await sendTab({ type: 'lyrics:auto' });
+});
 for (const b of document.querySelectorAll('[data-style]')) b.addEventListener('click', () => save({ lyricsStyle: b.dataset.style }));
 
 // ---------- lyrics look: running highlight, panel background, colours ----------

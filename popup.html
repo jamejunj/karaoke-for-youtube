@@ -2,14 +2,14 @@
 <html lang="th">
 <head>
   <meta charset="utf-8">
-  <title>YouTube Karaoke</title>
+  <title>Karaoke for YouTube</title>
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
   <header>
     <img src="icons/icon48.png" alt="" width="28" height="28">
     <div class="title">
-      <h1>YouTube Karaoke</h1>
+      <h1>Karaoke for YouTube</h1>
       <p id="status" class="status" data-i18n="statusChecking"></p>
       <button id="reloadTab" type="button" class="chip solid reload" data-i18n="reloadTab" hidden></button>
     </div>
@@ -84,6 +84,10 @@
     </div>
 
     <div id="lyricsTools" hidden>
+      <label class="check">
+        <input id="preferCCToggle" type="checkbox">
+        <span data-i18n="optPreferCC"></span>
+      </label>
       <label class="check">
         <input id="overlayToggle" type="checkbox">
         <span data-i18n="overlayToggle"></span>

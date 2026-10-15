@@ -2,8 +2,7 @@
 
 ## 1. Before you start
 - [ ] Register a developer account at https://chrome.google.com/webstore/devconsole (one-time US$5 fee, Google account with 2-Step Verification).
-- [ ] Put your contact email in `store/privacy-policy.html` (two places: `[YOUR CONTACT EMAIL]`, `[อีเมลติดต่อของคุณ]`).
-- [ ] Host the privacy policy at a public URL (e.g. GitHub Pages) — the dashboard needs a link, not a file.
+- [x] Privacy policy is public: https://github.com/jamejunj/karaoke-for-youtube/blob/main/PRIVACY.md (push `PRIVACY.md` to `main` first).
 - [ ] Take 1–5 screenshots at 1280×800 (see `store/listing.md`).
 - [ ] Build the package: `powershell -ExecutionPolicy Bypass -File .\build.ps1` → `dist/karaoke-for-youtube-<version>.zip`
 
@@ -40,7 +39,7 @@ Certify all three statements:
 - [x] I do not use or transfer user data for purposes that are unrelated to my item's single purpose
 - [x] I do not use or transfer user data to determine creditworthiness or for lending purposes
 
-**Privacy policy URL**: the public URL of `store/privacy-policy.html`.
+**Privacy policy URL**: https://github.com/jamejunj/karaoke-for-youtube/blob/main/PRIVACY.md
 
 ## 5. Distribution tab
 Visibility: Public (or Unlisted for a soft launch). Regions: all, or choose.

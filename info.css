@@ -116,3 +116,6 @@ details p { margin: 0 0 14px; color: var(--muted); }
   .hero { padding-top: 32px; }
   .keys td:last-child { white-space: normal; }
 }
+
+#privacy a { color: var(--accent); font-weight: 600; text-decoration: none; }
+#privacy a:hover { text-decoration: underline; }

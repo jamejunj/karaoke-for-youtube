@@ -1,4 +1,4 @@
-# Chrome Web Store submission — Karaoke for YouTube™ v1.5.0
+# Chrome Web Store submission — Karaoke for YouTube™ v1.3.1
 
 ## 1. Before you start
 - [ ] Register a developer account at https://chrome.google.com/webstore/devconsole (one-time US$5 fee, Google account with 2-Step Verification).

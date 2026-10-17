@@ -1,6 +1,6 @@
 # Privacy Policy — Karaoke for YouTube™
 
-*Last updated: 15 October 2026 · applies to version 1.5.0 and later*
+*Last updated: 15 October 2026 · applies to version 1.3.1 and later*
 
 [ภาษาไทยอยู่ด้านล่าง](#นโยบายความเป็นส่วนตัว--คาราโอเกะสำหรับ-youtube)
 
@@ -52,7 +52,7 @@ Questions or concerns: please [open an issue](https://github.com/jamejunj/karaok
 
 # นโยบายความเป็นส่วนตัว — คาราโอเกะสำหรับ YouTube™
 
-*อัปเดตล่าสุด: 15 ตุลาคม 2026 · ใช้กับเวอร์ชัน 1.5.0 ขึ้นไป*
+*อัปเดตล่าสุด: 15 ตุลาคม 2026 · ใช้กับเวอร์ชัน 1.3.1 ขึ้นไป*
 
 ## สรุป
 

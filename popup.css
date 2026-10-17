@@ -206,7 +206,7 @@ textarea { display: block; width: 100%; margin: 8px 0 6px; resize: vertical; }
 .pv-line > span { grid-area: 1 / 1; white-space: nowrap; -webkit-text-stroke: .05em rgba(0,0,0,.8); paint-order: stroke fill; }
 .pv-base { color: var(--fg); }
 .pv-hi { color: var(--hl); clip-path: inset(0 calc(100% - var(--p)) 0 0); }
-.look-preview.nowipe .pv-hi { clip-path: none; }
+.look-preview.nowipe .pv-hi { visibility: hidden; }
 
 .version { display: block; margin-top: 4px; opacity: .7; }
 

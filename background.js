@@ -219,3 +219,24 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 chrome.runtime.onInstalled.addListener((details) => {
   if (details.reason === 'install') chrome.runtime.openOptionsPage();
 });
+// ---------- toolbar icon: colour on YouTube, grey elsewhere ----------
+// The manifest's default action icon is grey; YouTube tabs get the colour icon as a per-tab override.
+// Tab URLs are only visible for sites we have host access to, which is exactly the YouTube hosts.
+const ICON_ON = { 16: 'icons/icon16.png', 32: 'icons/icon32.png', 48: 'icons/icon48.png', 128: 'icons/icon128.png' };
+const ICON_OFF = { 16: 'icons/icon-gray16.png', 32: 'icons/icon-gray32.png', 48: 'icons/icon-gray48.png', 128: 'icons/icon-gray128.png' };
+const isYouTubeUrl = (url) => /^https:\/\/(www|m|music)\.youtube\.com\//.test(url || '');
+
+function paintIcon(tab) {
+  if (!tab || typeof tab.id !== 'number' || tab.id < 0) return;
+  chrome.action.setIcon({ tabId: tab.id, path: isYouTubeUrl(tab.url) ? ICON_ON : ICON_OFF }).catch(() => {});
+}
+
+function paintAllTabs() {
+  chrome.tabs.query({}, (tabs) => (tabs || []).forEach(paintIcon));
+}
+
+chrome.tabs.onUpdated.addListener((_tabId, change, tab) => {
+  if (change.url || change.status) paintIcon(tab);
+});
+chrome.runtime.onInstalled.addListener(paintAllTabs);
+chrome.runtime.onStartup.addListener(paintAllTabs);

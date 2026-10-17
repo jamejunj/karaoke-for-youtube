@@ -23,7 +23,9 @@
 
   let show = false; // lyrics loading enabled (popup switch)
   let overlayOn = true; // also draw them over the video
-  let preferCC = true; // use the video's own uploaded captions before LRCLIB
+  let preferCC = true; // use the video's own captions (CC) as lyrics automatically
+  let userPicked = false; // current lyrics were chosen, pasted or synced by the user (not the automatic pick)
+  let settingsApplied = false;
   let docVersion = 0; // bumps whenever the loaded lyrics change
   let videoId = null;
   let status = 'off'; // off | waiting | searching | found | notfound | error | no-video
@@ -95,6 +97,7 @@
   }
 
   function resetLyrics() {
+    userPicked = false;
     loadToken++;
     rec = null;
     clearTimeout(loadTimer);
@@ -245,8 +248,10 @@
     const stored = (await chrome.storage.local.get(pickKey(vid)))[pickKey(vid)] || {};
     if (token !== loadToken) return;
     offset = stored.offset || 0;
+    userPicked = false;
 
     if (stored.mode === 'custom' && stored.text) {
+      userPicked = true;
       setDoc(stored.text, { kind: 'custom', selfSynced: !!stored.selfSynced, trackName: stored.trackName || null, artistName: stored.artistName || null });
       return;
     }
@@ -258,6 +263,7 @@
       const res = await sendBg({ type: 'lyrics:bg:get', id: stored.id });
       if (token !== loadToken) return;
       if (res.ok && res.record) {
+        userPicked = true;
         useRecord(res.record, false);
         return;
       }
@@ -273,6 +279,7 @@
     if (stored.mode === 'cc' && stored.vssId) {
       const track = ccTracks.find((x) => x.vssId === stored.vssId);
       if (track && (await useCaption(track, token, false))) {
+        userPicked = true;
         candidates = ccCandidates;
         return;
       }
@@ -300,8 +307,9 @@
       useRecord(res.best, false);
       return;
     }
-    // Nothing on LRCLIB: fall back to uploaded captions (if not preferred) or auto-generated ones
-    for (const track of [preferCC ? null : ccPick.best, ccPick.asr]) {
+    // Nothing on LRCLIB: with CC enabled, fall back to YouTube's auto-generated captions.
+    // With CC disabled, captions are never picked automatically (they stay in the list to choose by hand).
+    for (const track of preferCC ? [ccPick.asr] : []) {
       if (track && (await useCaption(track, token, false))) return;
       if (token !== loadToken) return;
     }
@@ -433,8 +441,11 @@
     .ln.nexttap { outline: 2px dashed rgba(255,210,63,.85); outline-offset: -2px; }
     @media (prefers-reduced-motion: reduce) { .ln { transition: none; } }
 
-    /* No running highlight: the current line is simply shown in the highlight colour */
-    .wrap.nowipe .hi { clip-path: none; }
+    /* No running highlight: the current line is shown in the text colour (white by default),
+       every other line - sung or still to come - is dimmed the same way */
+    .wrap.nowipe .hi { visibility: hidden !important; }
+    .wrap.nowipe .ln:not(.cur) { opacity: .4; }
+    .wrap.nowipe .next { color: var(--fg); opacity: .45; }
 
     /* No dark panel background: transparent panel, outlined text, controls appear on hover */
     .wrap.nobg .panel { background: transparent; backdrop-filter: none; box-shadow: none; }
@@ -1000,6 +1011,7 @@
   function finishRec() {
     if (!rec) return;
     cancelAutoLoad();
+    userPicked = true;
     const texts = lineTexts();
     const idxs = texts.map((x, i) => (x ? i : -1)).filter((i) => i >= 0);
     const tapped = idxs.filter((i) => rec.times[i] != null);
@@ -1046,7 +1058,21 @@
 
   function applySettings(s) {
     overlayOn = !(s && s.lyricsOverlay === false);
+    const prevPreferCC = preferCC;
     preferCC = !(s && s.lyricsPreferCC === false);
+    // React to the CC setting here, once the new value has actually arrived (no race with the popup).
+    // Lyrics the user chose, pasted or synced are left alone; otherwise switch away from / to CC.
+    const ccSettingChanged = settingsApplied && prevPreferCC !== preferCC;
+    settingsApplied = true;
+    if (ccSettingChanged && show && videoId && (status === 'found' || status === 'notfound' || status === 'error')) {
+      const onCC = source && source.kind === 'cc';
+      const redo = preferCC ? !userPicked && !onCC : onCC;
+      if (redo) {
+        if (onCC) chrome.storage.local.remove(pickKey(videoId));
+        resetLyrics();
+        scheduleLoad(0);
+      }
+    }
     style = s && s.lyricsStyle === 'lines' ? 'lines' : 'panel';
     const color = (v, d) => (typeof v === 'string' && /^#[0-9a-f]{6}$/i.test(v) ? v : d);
     look = {
@@ -1175,7 +1201,8 @@
           renderNow();
           useCaption(rec.cc, token, true).then((ok) => {
             if (token !== loadToken) return;
-            if (!ok) {
+            if (ok) userPicked = true;
+            else {
               status = 'error';
               lastError = t('ccFailed');
               renderNow();
@@ -1186,6 +1213,7 @@
         }
         if (rec) {
           cancelAutoLoad();
+          userPicked = true;
           offset = 0;
           savePick({ mode: 'lrclib', id: rec.id, offset: 0, text: null });
           useRecord(rec, false);
@@ -1195,6 +1223,7 @@
       }
       case 'lyrics:custom':
         cancelAutoLoad();
+        userPicked = true;
         offset = 0;
         savePick({ mode: 'custom', text: msg.text, id: null, offset: 0 });
         setDoc(msg.text, { kind: 'custom' });

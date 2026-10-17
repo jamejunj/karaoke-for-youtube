@@ -321,11 +321,8 @@ $('lyrRetry').addEventListener('click', async () => {
   refreshStatus();
 });
 $('overlayToggle').addEventListener('change', (e) => save({ lyricsOverlay: e.target.checked }));
-$('preferCCToggle').addEventListener('change', async (e) => {
-  save({ lyricsPreferCC: e.target.checked });
-  // re-run the automatic choice with the new preference (keeps lyrics you picked or pasted)
-  if (!lyricsState || !lyricsState.source || lyricsState.source.kind !== 'custom') await sendTab({ type: 'lyrics:auto' });
-});
+// The page re-picks its lyrics itself when it sees the saved setting change (see applySettings in lyrics.js)
+$('preferCCToggle').addEventListener('change', (e) => save({ lyricsPreferCC: e.target.checked }));
 for (const b of document.querySelectorAll('[data-style]')) b.addEventListener('click', () => save({ lyricsStyle: b.dataset.style }));
 
 // ---------- lyrics look: running highlight, panel background, colours ----------
